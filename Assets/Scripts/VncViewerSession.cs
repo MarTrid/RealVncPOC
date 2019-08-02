@@ -95,7 +95,7 @@ namespace VncViewerUnity
                 }
                 else
                 {
-                    // Make a Direct TCP connection.
+                    // Make a Direct TCP connecticon.
                     // Ignore this if you do not intend to use the Direct TCP add-on.
                     NewStatus($"Connecting to host address: {TcpAddress} port: {TcpPort}");
                     using (DirectTcpConnector tcpConnector = new DirectTcpConnector())
@@ -198,7 +198,7 @@ namespace VncViewerUnity
             if (newSize != null && newSize.Value != Vector2Int.zero)
                 CurrentCanvasSize = newSize;
 
-            Vector2Int size = CurrentCanvasSize ?? new Vector2Int();
+            Vector2Int size = CurrentCanvasSize ?? Vector2Int.zero;
 
             if (size != Vector2Int.zero)
             {

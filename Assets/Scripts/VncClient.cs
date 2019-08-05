@@ -68,6 +68,11 @@ namespace VncViewerUnity
             {
                 StartConnection();
             }
+
+            if (Input.GetKeyDown(KeyCode.D))
+            {
+                session.Disconnect();
+            }
         }
         
         private void StartConnection()
@@ -88,7 +93,7 @@ namespace VncViewerUnity
                     //LocalCloudAddress = ConnectSettings.LocalCloudAddress,
                     //LocalCloudPassword = ConnectSettings.LocalCloudPassword,
                     //PeerCloudAddress = ConnectSettings.PeerCloudAddress,
-                    TcpAddress = "10.0.75.1",
+                    TcpAddress = "localhost",
                     TcpPort = 5900,
                     UsingCloud = false,
                     

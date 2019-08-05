@@ -16,6 +16,7 @@ namespace VncViewerUnity
         {
             Debug.Log("Called start");
             screenMaterial = GetComponent<MeshRenderer>().material;
+            Texture2D.allowThreadedTextureCreation = true;
         }
 
         /*
@@ -75,7 +76,6 @@ namespace VncViewerUnity
         public void OnFrameBufferUpdated(Rect rc)
         {
             Debug.Log("Frame buffer updated.");
-            Debug.Log(bufferHolder.Buffer.Length);
             /*
             // Invalidate on the GUI thread
             BeginInvoke(new Action(() =>
@@ -107,12 +107,11 @@ namespace VncViewerUnity
             PinnedBuffer = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             IntPtr pointer = PinnedBuffer.AddrOfPinnedObject();
 
-            Canvas.LoadRawTextureData(pointer, width * height);
+            //Canvas.LoadRawTextureData(pointer, width * height);
 
             
             //var pixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
-            Texture2D.allowThreadedTextureCreation = true;
-            Canvas = Texture2D.CreateExternalTexture(width, height, TextureFormat.RGBA32, false, true, pointer);
+            //Canvas = Texture2D.CreateExternalTexture(width, height, TextureFormat.RGBA32, false, true, pointer);
 
 
             // Create the canvas bitmap using the pointer provided from the SDK

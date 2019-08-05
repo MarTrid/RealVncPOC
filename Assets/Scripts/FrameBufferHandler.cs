@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -56,12 +57,15 @@ namespace VncViewerUnity
 
         private void Update()
         {
-            if (bufferHolder != null && bufferHolder.Buffer.IsCreated)
+            lock (bufferLock)
             {
-                canvas.LoadRawTextureData(bufferHolder.Buffer);
-                canvas.Apply();
-                Debug.Log("Screen updated.");
+                if (bufferHolder != null && bufferHolder.Buffer != null)
+                {
+                    canvas.LoadRawTextureData(bufferHolder.Buffer);
+                    canvas.Apply();
+                    Debug.Log("Screen updated.");
 
+                }
             }
         }
 
@@ -126,14 +130,14 @@ if (bufferHolder != null && bufferHolder.Buffer != null)
     /// </summary>
     public class BufferHolder : IDisposable
     {
-        public NativeArray<byte> Buffer { get; private set; }
+        public byte[] Buffer { get; private set; }
         private GCHandle PinnedBuffer;
         private Texture2D Canvas;
 
         public void ResizeBuffer(int width, int height, int stride, byte[] buffer)
         {
             Debug.Log("Resizing buffer");
-            Buffer = new NativeArray<byte>(buffer, Allocator.Persistent);
+            Buffer = buffer;
             if (PinnedBuffer.IsAllocated)
             {
                 PinnedBuffer.Free();
@@ -164,8 +168,6 @@ if (bufferHolder != null && bufferHolder.Buffer != null)
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
-
-            Buffer.Dispose();
             
             if (Canvas != null)
             {

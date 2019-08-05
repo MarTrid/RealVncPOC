@@ -71,7 +71,7 @@ namespace VncViewerUnity
 
             if (Input.GetKeyDown(KeyCode.D))
             {
-                session.Disconnect();
+                session?.Disconnect();
             }
         }
         

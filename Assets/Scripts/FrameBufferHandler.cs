@@ -20,37 +20,33 @@ namespace VncViewerUnity
         private BufferHolder bufferHolder = new BufferHolder();
         private readonly object bufferLock = new object();
         private Texture2D canvas;
-        private byte[] testData;
 
         [SerializeField]
         private Texture2D testTexture;
 
         private void Start()
         {
-            Debug.Log("Called start");
             screenMaterial = GetComponent<MeshRenderer>().material;
-            Texture2D.allowThreadedTextureCreation = true;
+            //Texture2D.allowThreadedTextureCreation = true;
             canvas = new Texture2D(1920, 1080, TextureFormat.BGRA32, false);
             screenMaterial.mainTexture = canvas;
         }
 
-        private void UpdateDisplay(RectInt rect)
+        private void UpdateDisplay()
         {
             lock (bufferLock)
             {
                 if (bufferHolder != null && bufferHolder.Buffer != null)
                 {
-                    if (bufferHolder.Buffer.Length != canvas.width * canvas.height * 4)
-                    {
-                        Debug.LogWarningFormat("buffer size does not match screen size.");
-                        return;
-                    }
-                    
                     canvas.LoadRawTextureData(bufferHolder.Buffer);
                     canvas.Apply();
-                    Debug.Log("Screen updated.");
                 }
             }
+        }
+
+        private void Update()
+        {
+            UpdateDisplay();
         }
 
         public void OnFrameBufferResized(int width, int height, int stride, byte[] buffer, bool resizeWindow)
@@ -69,7 +65,6 @@ namespace VncViewerUnity
                     MainThreadDispatcher.Instance.Invoke(() =>
                     {
                         canvas.Resize(width, height);
-                        UpdateDisplay(new RectInt(0, 0, width, height));
                     });
                 }
             }
@@ -77,11 +72,7 @@ namespace VncViewerUnity
 
         public void OnFrameBufferUpdated(Rect rc)
         {
-            Debug.LogFormat("Updating display at {0}", rc);
-            MainThreadDispatcher.Instance.Invoke(() =>
-            {
-                UpdateDisplay(new RectInt((int)rc.xMin, (int)rc.yMin, (int)rc.width, (int)rc.height));
-            });
+            // No need to do anything as we're happily updating every frame.
         }
     }
 

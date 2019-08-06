@@ -20,6 +20,13 @@ namespace VncViewerUnity
 
         private void Update()
         {
+            /*
+            if (session != null && session.CurrentCanvasSize != null)
+            {
+                float ratio = session.CurrentCanvasSize.Value.x / session.CurrentCanvasSize.Value.y;
+                transform.localScale = new Vector3(transform.localScale.z * ratio * -1, transform.localScale.y, transform.localScale.z);
+            }*/
+            
             if (Input.GetKeyDown(KeyCode.C))
             {
                 StartConnection();

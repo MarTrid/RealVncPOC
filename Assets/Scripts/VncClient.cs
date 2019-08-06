@@ -29,6 +29,22 @@ namespace VncViewerUnity
             {
                 session?.Disconnect();
             }
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
+                {
+                    GameObject click = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    click.transform.position = hit.point;
+                    click.transform.localScale = Vector3.one * 0.1f;
+                    Vector2 clickedPoint = hit.textureCoord;
+                    Vector2Int clickedPixel = new Vector2Int((int)(clickedPoint.x * 2560), (int)(clickedPoint.y * 1440));
+                    
+                    Debug.Log("Clicked screen at " + clickedPixel);
+                }
+            }
         }
         
         private void StartConnection()

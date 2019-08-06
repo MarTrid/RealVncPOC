@@ -1,42 +1,21 @@
 using RealVNC.VncSdk;
 using System;
 using System.Runtime.InteropServices;
-using System.Windows;
 using UnityEngine;
 
 namespace VncViewerUnity
 {
     public class VncViewerSession
     {
-        //
-        // Cloud connection properties
-        //
-        public string LocalCloudAddress { get; set; }
-        public string LocalCloudPassword { get; set; }
-        public string PeerCloudAddress { get; set; }
-
-        //
-        // Or direct-connection properties
-        //
         public string TcpAddress { get; set; }
-
         public int TcpPort { get; set; }
 
-        //
-        // Other settings
-
-        public bool UsingCloud { get; set; } = true;
-
         public Vector2Int? CurrentCanvasSize { get; set; }
-
         public IVncFramebufferCallback FrameBufferHandler { get; set; }
-
-
         private static VncViewerSession RunningSession;
 
         public Action OnConnect { get; set; }
         public Action<string, Viewer.DisconnectFlags> OnDisconnect { get; set; }
-
         public Action<string> OnNewStatus { get; set; }
 
         public bool AnnotationEnabled { get; set; }
@@ -80,30 +59,13 @@ namespace VncViewerUnity
 
                 UpdateFrameBufferToCanvasSize();
 
-                // See if we should override the UsingCloud setting
-                if (InferredUsingCloud != null)
-                    UsingCloud = InferredUsingCloud.Value;
-
-                if (UsingCloud)
+                // Make a Direct TCP connecticon.
+                NewStatus($"Connecting to host address: {TcpAddress} port: {TcpPort}");
+                using (DirectTcpConnector tcpConnector = new DirectTcpConnector())
                 {
-                    // Make a Cloud connection.
-                    NewStatus("Connecting via VNC Cloud");
-                    using (CloudConnector cloudConnector = new CloudConnector(LocalCloudAddress, LocalCloudPassword))
-                    {
-                        cloudConnector.Connect(PeerCloudAddress, Viewer.GetConnectionHandler());
-                    }
+                    tcpConnector.Connect(TcpAddress, TcpPort, Viewer.GetConnectionHandler());
                 }
-                else
-                {
-                    // Make a Direct TCP connecticon.
-                    // Ignore this if you do not intend to use the Direct TCP add-on.
-                    NewStatus($"Connecting to host address: {TcpAddress} port: {TcpPort}");
-                    using (DirectTcpConnector tcpConnector = new DirectTcpConnector())
-                    {
-                        tcpConnector.Connect(TcpAddress, TcpPort, Viewer.GetConnectionHandler());
-                    }
-                }
-
+                
                 // Run the SDK's event loop.  This will return when any thread
                 // calls EventLoop.Stop(), allowing this ViewerSession to stop.
                 RunningSession = this;
@@ -191,7 +153,6 @@ namespace VncViewerUnity
 
             // AnnotationManagerCallback is set when annotation is enabled.
         }
-
         
         private bool UpdateFrameBufferToCanvasSize(Vector2Int? newSize = null, bool requestWindowResize = false)
         {
@@ -222,7 +183,6 @@ namespace VncViewerUnity
             return false;
         }
 
-
         private void UpdateFrameBufferSize(int width, int height, bool requestWindowResize = false)
         {
             width = Math.Max(width, 10);
@@ -230,7 +190,6 @@ namespace VncViewerUnity
             FrameBuffer.SetBuffer(width, height);
             FrameBufferHandler.OnFrameBufferResized(width, height, width, FrameBuffer.Buffer, requestWindowResize);
         }
-
 
         private void OnServerFbSizeChanged(Viewer viewer, int w, int h)
         {
@@ -271,30 +230,6 @@ namespace VncViewerUnity
         {
             // Display name
             NewStatus($"Server name change: {newName}");
-        }
-
-        /// <summary>
-        /// Return true if the settings infer to use cloud, false if the settings infer direct-tcp
-        /// null if the settings could be either or none.
-        /// </summary>
-        public bool? InferredUsingCloud
-        {
-            get
-            {
-                bool GotCloudSettings =
-                    !string.IsNullOrEmpty(LocalCloudAddress) &&
-                    !string.IsNullOrEmpty(LocalCloudPassword) &&
-                    !string.IsNullOrEmpty(PeerCloudAddress);
-
-                bool GotDirectTcpSettings = !string.IsNullOrEmpty(TcpAddress) && TcpPort != 0;
-
-                // If one of the settings allows us to infer which connection to use then return that
-                if (GotCloudSettings != GotDirectTcpSettings)
-                    return GotCloudSettings;
-
-                // Otherwise show we don't know: null
-                return null;
-            }
         }
 
         #region Cross-thread calls
@@ -388,81 +323,6 @@ namespace VncViewerUnity
         public void ResizeFrameBuffer(Vector2Int newSize)
         {
             RunInSession(() => UpdateFrameBufferToCanvasSize(newSize));
-        }
-
-        // Annotations: draw an overlay on the Server's screen
-
-        /// <summary>
-        /// Start, alter or stop an annotation.
-        /// </summary>
-        /// <param name="start">true to start or alter settings of existing annotation. false to stop annotation</param>
-        /// <param name="persistDurationMs">annotations will fade after this time (ms)</param>
-        /// <remarks>
-        /// Runs the action on the library thread as part of this session.
-        /// </remarks>
-        public void ChangeAnnotation(bool start, int penSize = 0, Color32? penColour = null, int persistDurationMs = 0)
-        {
-            if (!start)
-            {
-                AnnotationEnabled = false;
-                return;
-            }
-
-            RunInSession(() =>
-            {
-                var annotationMgr = Viewer.GetAnnotationManager();
-
-                if (annotationMgr != null)
-                {
-                    if (penSize > 0)
-                        annotationMgr.SetPenSize(penSize);
-                    if (penColour != null)
-                        annotationMgr.SetPenColor(unchecked((int)0xff000000 | (penColour.Value.r << 16) | (penColour.Value.g << 8) | penColour.Value.b));
-                    if (persistDurationMs > 0)
-                        annotationMgr.SetPersistDuration(persistDurationMs);
-
-                    annotationMgr.SetFadeDuration(300);
-
-                    annotationMgr.SetCallback(AnnotationManagerCallback);
-                }
-
-                AnnotationEnabled = true;
-            });
-        }
-
-        /// <summary>
-        /// Calls AnnotationManager.MovePenTo() from any thread.
-        /// </summary>
-        /// <remarks>
-        /// Runs the action on the library thread as part of this session.
-        /// </remarks>
-        public void MovePenTo(int x, int y, bool penDown)
-        {
-            RunInSession(() =>
-            {
-                try
-                {
-                    Viewer.GetAnnotationManager()?.MovePenTo(x, y, penDown);
-                }
-                catch (VncException e)
-                {
-                    // Servers may temporarily refuse annotation (NotSupported)
-                    // e.g. when attempting to annotate before authenticating.
-                    if (e.ErrorCode != "NotSupported")
-                        throw;
-                }
-            });
-        }
-
-        /// <summary>
-        /// Calls AnnotationManager.ClearAll() from any thread.
-        /// </summary>
-        /// <remarks>
-        /// Runs the action on the library thread as part of this session.
-        /// </remarks>
-        public void ClearAnnotation()
-        {
-            RunInSession(() => Viewer.GetAnnotationManager()?.ClearAll(false));
         }
         #endregion
     }

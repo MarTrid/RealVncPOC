@@ -1,16 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using RealVNC.VncSdk;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Experimental.PlayerLoop;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
 
 namespace VncViewerUnity
 {
@@ -24,7 +14,6 @@ namespace VncViewerUnity
         private void Start()
         {
             screenMaterial = GetComponent<MeshRenderer>().material;
-            //Texture2D.allowThreadedTextureCreation = true;
             canvas = new Texture2D(1920, 1080, TextureFormat.BGRA32, false);
             screenMaterial.mainTexture = canvas;
         }
@@ -86,7 +75,6 @@ namespace VncViewerUnity
     {
         public byte[] Buffer { get; private set; }
         private GCHandle PinnedBuffer;
-        public IntPtr BufferPointer { get; private set; }
         
         public void ResizeBuffer(int width, int height, int stride, byte[] buffer)
         {
@@ -97,19 +85,9 @@ namespace VncViewerUnity
             }
 
             PinnedBuffer = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            BufferPointer = PinnedBuffer.AddrOfPinnedObject();
-            
-
-            //var pixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
-            //Canvas = Texture2D.CreateExternalTexture(width, height, TextureFormat.RGBA32, false, true, pointer);
-
-            // Create the canvas bitmap using the pointer provided from the SDK
-            //Canvas = Texture2D.CreateExternalTexture(width, height, TextureFormat.RGBA32, false, true, pointer);
-            //Canvas = new Bitmap(width, height, stride * 4, pixelFormat, pointer);
-            // Convert data to color32[]
-            // set data to canvas
         }
 
+        // Not sure what this is for, checked canvas was not null before.
         public bool IsValid => PinnedBuffer.IsAllocated;
 
         public void Dispose()

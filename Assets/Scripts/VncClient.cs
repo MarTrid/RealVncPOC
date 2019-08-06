@@ -20,12 +20,7 @@ namespace VncViewerUnity
 
         private void Update()
         {
-            /*
-            if (session != null && session.CurrentCanvasSize != null)
-            {
-                float ratio = session.CurrentCanvasSize.Value.x / session.CurrentCanvasSize.Value.y;
-                transform.localScale = new Vector3(transform.localScale.z * ratio * -1, transform.localScale.y, transform.localScale.z);
-            }*/
+            Debug.Log(session?.CurrentCanvasSize.Value);
             
             if (Input.GetKeyDown(KeyCode.C))
             {
@@ -34,7 +29,7 @@ namespace VncViewerUnity
 
             if (Input.GetKeyDown(KeyCode.D))
             {
-                session?.Disconnect();
+                session?.StopSession();
             }
 
             if (Input.GetKeyDown(KeyCode.P))
@@ -53,43 +48,40 @@ namespace VncViewerUnity
                 session?.SendKeyUp(54);
             }
             
-            
-
             if (Input.GetMouseButtonDown(0))
             {
-                Vector2Int? clickedPixel = GetClickedPointOnScreen();
+                Vector2Int? mousePosition = GetMousePosition();
 
-                if (clickedPixel != null)
+                if (mousePosition != null)
                 {
-                    session?.SendPointerEvent(clickedPixel.Value.x, clickedPixel.Value.y, Viewer.MouseButton.Left, false);
+                    session?.SendPointerEvent(mousePosition.Value.x, mousePosition.Value.y, Viewer.MouseButton.Left, false);
                 }
             }
-            
-            
+
             if (Input.GetMouseButtonUp(0))
             {
-                Vector2Int? clickedPixel = GetClickedPointOnScreen();
+                Vector2Int? mousePosition = GetMousePosition();
 
-                if (clickedPixel != null)
+                if (mousePosition != null)
                 {
-                    session?.SendPointerEvent(clickedPixel.Value.x, clickedPixel.Value.y, Viewer.MouseButton.Zero, false);
+                    session?.SendPointerEvent(mousePosition.Value.x, mousePosition.Value.y, Viewer.MouseButton.Zero, false);
                 }
             }
         }
 
-        private Vector2Int? GetClickedPointOnScreen()
+        private Vector2Int? GetMousePosition()
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
             if (Physics.Raycast(ray, out hit))
             {
-                Vector2 clickedPoint = hit.textureCoord;
-                Vector2Int clickedPixel = new Vector2Int((int)(clickedPoint.x * 2560), (int)(clickedPoint.y * 1440));
+                Vector2 point = hit.textureCoord;
+                Vector2Int pixel = new Vector2Int((int)(point.x * session.CurrentCanvasSize.Value.x), (int)(point.y * session.CurrentCanvasSize.Value.y));
 
-                Debug.Log("Clicked screen at " + clickedPixel);
+                Debug.Log("Clicked screen at " + pixel);
 
-                return clickedPixel;
+                return pixel;
             }
 
             return null;
@@ -107,7 +99,6 @@ namespace VncViewerUnity
                 {
                     TcpAddress = "localhost",
                     TcpPort = 5900,
-                    UsingCloud = false,
                     
                     FrameBufferHandler = GetComponent<FrameBufferHandler>(),
 
@@ -135,7 +126,6 @@ namespace VncViewerUnity
         private void OnDisconnect(string disconnectMessage = null)
         {
             // This method is called at the end of every viewer session.
-
             session = null;
             
             if (string.IsNullOrEmpty(disconnectMessage))

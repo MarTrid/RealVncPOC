@@ -17,8 +17,7 @@ namespace VncViewerUnity
     {
         private Material screenMaterial;
         private BufferHolder bufferHolder = new BufferHolder();
-        private object bufferLock = new object();
-        private bool beBlank = true;
+        private readonly object bufferLock = new object();
         private Texture2D canvas;
         private byte[] testData;
 
@@ -64,7 +63,6 @@ namespace VncViewerUnity
                     canvas.LoadRawTextureData(bufferHolder.Buffer);
                     canvas.Apply();
                     Debug.Log("Screen updated.");
-
                 }
             }
         }
@@ -80,11 +78,6 @@ namespace VncViewerUnity
                     if (buffer != null)
                     {
                         bufferHolder.ResizeBuffer(width, height, stride, buffer);
-                        beBlank = false;
-                    }
-                    else
-                    {
-                        beBlank = true;
                     }
 
                     // And redraw
@@ -105,23 +98,6 @@ namespace VncViewerUnity
                 Update();
             }));
             */
-
-            /*       
-if (bufferHolder != null && bufferHolder.Buffer != null)
-{
-   bool record = false;
-   StringBuilder stringBuilder = new StringBuilder();
-   foreach (byte b in bufferHolder.Buffer)
-   {
-       if (b != 0 || record)
-       {
-           record = true;
-           stringBuilder.Append(b.ToString() + "\n");
-       }
-   }
-   
-   Debug.Log(stringBuilder.ToString());
-}*/
         }
     }
 

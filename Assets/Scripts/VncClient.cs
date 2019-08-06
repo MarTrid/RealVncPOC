@@ -90,13 +90,8 @@ namespace VncViewerUnity
             VncViewerSession viewerSession;
             try
             {
-                //ButtonConnect.IsEnabled = false;
-
                 Debug.Log("Connecting...");
-
-                //StartAnnotation.IsChecked = false; // Default to off
-                //KeyboardControl.IsChecked = true; // So we can input code
-
+                
                 // Now start the connection
                 viewerSession = new VncViewerSession
                 {
@@ -117,23 +112,8 @@ namespace VncViewerUnity
 
                     CurrentCanvasSize = new Vector2Int(2560,1440)
                 };
-
-                
-                //EventMap = new VncWinformEventMap(viewerSession, VncViewerControl);
-/*
-                // Give the viewer session user-input events
-                if (KeyboardControl.IsChecked == true)
-                    EventMap.RegisterKeyboardControls(true);
-
-                if (MouseControl.IsChecked == true)
-                    EventMap.RegisterMouseControls(true);
-
-                ManageConnectControls(true);
-
-                // Give the child-control the focus of keyboard
-                VncViewerControl.Focus();
-                */
             }
+            
             catch (Exception ex)
             {
                 OnDisconnect(ex.Message);
@@ -150,28 +130,11 @@ namespace VncViewerUnity
             // This method is called at the end of every viewer session.
 
             session = null;
-
-            /*
-            if (EventMap != null)
-            {
-                EventMap.RegisterKeyboardControls(false);
-                EventMap.RegisterMouseControls(false);
-                EventMap = null;
-            }
-*/
+            
             if (string.IsNullOrEmpty(disconnectMessage))
                 disconnectMessage = "Disconnected";
 
             Debug.Log(disconnectMessage);
-
-            /*
-            ManageConnectControls(false);
-*/
-            // If we are closing the main window, continue to do so.
-            /*
-            if (IsClosing)
-                Close();
-                */
         }
     }
 }

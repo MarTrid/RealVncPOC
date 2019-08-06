@@ -30,7 +30,7 @@ namespace VncViewerUnity
             Debug.Log("Called start");
             screenMaterial = GetComponent<MeshRenderer>().material;
             Texture2D.allowThreadedTextureCreation = true;
-            canvas = new Texture2D(2560, 1440, TextureFormat.BGRA32, false);
+            canvas = new Texture2D(1920, 1080, TextureFormat.BGRA32, false);
             screenMaterial.mainTexture = canvas;
         }
 
@@ -66,11 +66,6 @@ namespace VncViewerUnity
                         bufferHolder.ResizeBuffer(width, height, stride, buffer);
                     }
 
-                    if (width == 0 || height == 0)
-                    {
-                        return;
-                    }
-                    
                     MainThreadDispatcher.Instance.Invoke(() =>
                     {
                         canvas.Resize(width, height);
@@ -82,11 +77,6 @@ namespace VncViewerUnity
 
         public void OnFrameBufferUpdated(Rect rc)
         {
-            if (rc.width == 0 || rc.height == 0)
-            {
-                return;
-            }
-            
             Debug.LogFormat("Updating display at {0}", rc);
             MainThreadDispatcher.Instance.Invoke(() =>
             {

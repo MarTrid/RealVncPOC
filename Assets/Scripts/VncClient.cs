@@ -45,6 +45,8 @@ namespace VncViewerUnity
                 session?.SendKeyDown(Library.UnicodeToKeysym(54), 54);
                 session?.SendKeyUp(54);
             }
+            
+            
 
             if (Input.GetMouseButtonDown(0))
             {
@@ -55,6 +57,7 @@ namespace VncViewerUnity
                     session?.SendPointerEvent(clickedPixel.Value.x, clickedPixel.Value.y, Viewer.MouseButton.Left, false);
                 }
             }
+            
             
             if (Input.GetMouseButtonUp(0))
             {

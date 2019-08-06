@@ -236,9 +236,11 @@ namespace VncViewerUnity
         {
             // The Server screen size has changed, so we signal the window to
             // resize to match its aspect ratio.
+            
             ServerAspectRatio = w / (double)h;
             w = viewer.GetViewerFbWidth();
             h = (int)(w / ServerAspectRatio);
+            
             FrameBuffer.SetBuffer(w, h);
 
             // Before we pass it onto the frame-buffer-handler check we have correctly applied the resize to our

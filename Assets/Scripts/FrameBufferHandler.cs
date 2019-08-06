@@ -21,9 +21,6 @@ namespace VncViewerUnity
         private readonly object bufferLock = new object();
         private Texture2D canvas;
 
-        [SerializeField]
-        private Texture2D testTexture;
-
         private void Start()
         {
             screenMaterial = GetComponent<MeshRenderer>().material;
@@ -62,9 +59,15 @@ namespace VncViewerUnity
                         bufferHolder.ResizeBuffer(width, height, stride, buffer);
                     }
 
+                    if (width == 0 || height == 0)
+                    {
+                        return;
+                    }
+                    
                     MainThreadDispatcher.Instance.Invoke(() =>
                     {
                         canvas.Resize(width, height);
+                        transform.localScale = new Vector3((float)width/height * transform.localScale.y, transform.localScale.y, -transform.localScale.y);
                     });
                 }
             }

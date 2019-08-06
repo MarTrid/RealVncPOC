@@ -30,23 +30,61 @@ namespace VncViewerUnity
                 session?.Disconnect();
             }
 
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                session?.SendKeyDown(Library.UnicodeToKeysym(54), 54);
+                session?.SendKeyUp(54);
+                session?.SendKeyDown(Library.UnicodeToKeysym(54), 54);
+                session?.SendKeyUp(54);
+                session?.SendKeyDown(Library.UnicodeToKeysym(54), 54);
+                session?.SendKeyUp(54);
+                session?.SendKeyDown(Library.UnicodeToKeysym(54), 54);
+                session?.SendKeyUp(54);
+                session?.SendKeyDown(Library.UnicodeToKeysym(54), 54);
+                session?.SendKeyUp(54);
+                session?.SendKeyDown(Library.UnicodeToKeysym(54), 54);
+                session?.SendKeyUp(54);
+            }
+
             if (Input.GetMouseButtonDown(0))
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-                if (Physics.Raycast(ray, out hit))
+                Vector2Int? clickedPixel = GetClickedPointOnScreen();
+
+                if (clickedPixel != null)
                 {
-                    GameObject click = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    click.transform.position = hit.point;
-                    click.transform.localScale = Vector3.one * 0.1f;
-                    Vector2 clickedPoint = hit.textureCoord;
-                    Vector2Int clickedPixel = new Vector2Int((int)(clickedPoint.x * 2560), (int)(clickedPoint.y * 1440));
-                    
-                    Debug.Log("Clicked screen at " + clickedPixel);
+                    session?.SendPointerEvent(clickedPixel.Value.x, clickedPixel.Value.y, Viewer.MouseButton.Left, false);
+                }
+            }
+            
+            if (Input.GetMouseButtonUp(0))
+            {
+                Vector2Int? clickedPixel = GetClickedPointOnScreen();
+
+                if (clickedPixel != null)
+                {
+                    session?.SendPointerEvent(clickedPixel.Value.x, clickedPixel.Value.y, Viewer.MouseButton.Zero, false);
                 }
             }
         }
-        
+
+        private Vector2Int? GetClickedPointOnScreen()
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                Vector2 clickedPoint = hit.textureCoord;
+                Vector2Int clickedPixel = new Vector2Int((int)(clickedPoint.x * 2560), (int)(clickedPoint.y * 1440));
+
+                Debug.Log("Clicked screen at " + clickedPixel);
+
+                return clickedPixel;
+            }
+
+            return null;
+        }
+
         private void StartConnection()
         {
             VncViewerSession viewerSession;

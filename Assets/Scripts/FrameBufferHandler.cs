@@ -79,6 +79,12 @@ namespace VncViewerUnity
                     {
                         bufferHolder.ResizeBuffer(width, height, stride, buffer);
                     }
+                    
+                    MainThreadDispatcher.Instance.Invoke(() =>
+                    {
+                        canvas.Resize(width, height);
+                        Debug.Log("CAnvas resized on main thread.");
+                    });
 
                     // And redraw
                     //BeginInvoke(new Action(() => { Invalidate(); }));

@@ -21,6 +21,7 @@ namespace VncViewerUnity
         private readonly ManualResetEventSlim ShouldStop = new ManualResetEventSlim(false);
         
         private VncViewerSession CurrentVncViewerSession;
+        private static string libraryPath;
 
         // To enable direct TCP connectivity you need to copy the content of your add-on code here
         private const string DirectTcpAddOnCode = @"bm8IMo/fpGWC9bhvbGs3jGztKEFbraPnaXxObLoB33YWeQJOIWGP6CHUHGL+CxNtAzeDfaS9m9zuabmJlYOj1hSoXpDpfZNBfXb/1aH4dnM9IqgfYi6mxaE4fn/9f0KcpVvu8Iy8pGP9Nrt8FETNqQDyDPXBR6bc3sL0DEFYKa/h+cZG3R/kPbm8JPlQStNjsn5JwJ3luXyO/z07PZo10weJEPUEskGggQLlx8lUxk7qISQJgVFQY0XJG8rNExgc02l6ibL2PcISM9V6jqlKtLrRrjLXxfZTxGLVa1XL2FHI+2HMHaRJ0HfBiH/sNUgCVqXPAP6O44Cm6yy2Z9gJsnz994OpEGdUsA0MAoeuz6iVXuCX/43lz0oPgm/4bq7XbyxA4cjM/IPASFGX1N4SopaTyyYMcK5wbTaQCAC8A9uzzLZ/MUbcVmBDQJdOMaL+M9kY8yNLFFAh5wF8/RHt2SGpBb24+KRaY90wzMbeentDqXV7sKGDUeuadmkTUTfd3ii/mmmedpOhbXxUryX87lUiuV6Cbc2gW37yNp9LocKyQ14GS108Gp32fhAcHBbkmunAT2ftfuf0nuneyCHPDpTxkapLTNw7HhbScsziYrJB91GRHo3BQUK9rsKxH9Q93h2fpIZi5/kVFu0MT6+1uWIdEYAi7TV1+yOy1gSvywk=";
@@ -36,6 +37,7 @@ namespace VncViewerUnity
 
         private VncLibraryThread()
         {
+            libraryPath = Application.dataPath + "/RealVnc";
             LibraryTask = Task.Run(() =>
             {
                 if (LoadLibrary())
@@ -118,11 +120,8 @@ namespace VncViewerUnity
 
         private static void LibraryInit()
         {
-            // Get the directory containing the VNC SDK dynamic library.
-            var libDir = GetLibraryDirectory();
-
             // Load the library.
-            DynamicLoader.LoadLibrary(libDir);
+            DynamicLoader.LoadLibrary(libraryPath);
 
             // Create a logger with outputs to sys.stderr
             RealVNC.VncSdk.Logger.CreateStderrLogger();
@@ -143,38 +142,6 @@ namespace VncViewerUnity
         {
             Library.Shutdown();
         }
-
-        #region FindLibrary
-        /// <summary>
-        /// Get the directory containing the VNC SDK dynamic library.
-        /// </summary>
-        static string GetLibraryDirectory()
-        {
-            //return Application.dataPath + "/RealVnc";
-            //TODO do not hardcode
-            return "D:/Repos/VncTest/Assets/RealVnc";
-            /*
-            var exeDir = AppDomain.CurrentDomain.BaseDirectory;
-#if DEBUG
-            // Get the default location of the VNC SDK "lib" directory
-            // relative to the executable's build directory.
-            var sdkRoot = new DirectoryInfo(exeDir).Parent.Parent.Parent.Parent;
-            var libDir = Path.Combine(sdkRoot.FullName, "lib");
-
-            // Return the appropriate platform-specific subdirectory.
-            return DynamicLoader.GetPlatformSubdirectory(libDir);
-#else
-            // EDIT AS APPROPRIATE
-            throw new NotImplementedException(
-                $"{nameof(VncLibraryThread)}.{nameof(GetLibraryDirectory)}()\n\n" +
-                "Production applications should return a trusted directory, " +
-                "which will depend on details of how the application will be " +
-                "deployed.");
-            // return exeDir;  // Assumes all files are in a secure directory.            
-#endif
-*/
-        }
-        #endregion
 
         /// <summary>
         /// Stops the library altogether. Should only be called when no viewer

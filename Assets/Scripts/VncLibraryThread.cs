@@ -19,7 +19,7 @@ namespace VncViewerUnity
 
         private readonly ManualResetEventSlim NewSession = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim ShouldStop = new ManualResetEventSlim(false);
-
+        
         private VncViewerSession CurrentVncViewerSession;
 
         // To enable direct TCP connectivity you need to copy the content of your add-on code here

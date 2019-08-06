@@ -8,6 +8,7 @@ using RealVNC.VncSdk;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
@@ -31,35 +32,20 @@ namespace VncViewerUnity
             Texture2D.allowThreadedTextureCreation = true;
             canvas = new Texture2D(2560, 1440, TextureFormat.BGRA32, false);
             screenMaterial.mainTexture = canvas;
-
-
-            testData = new byte[2560 * 1440 * 4];
-
-            for (int i = 0; i < testData.Length; i = i + 4)
-            {
-                if (i < testData.Length / 2)
-                {
-                    testData[i] = 255;
-                    testData[i + 1] = 127;
-                    testData[i + 2] = 0;
-                    testData[i + 3] = 0;
-                }
-                else
-                {
-                    testData[i] = 127;
-                    testData[i + 1] = 255;
-                    testData[i + 2] = 0;
-                    testData[i + 3] = 0;
-                }
-            }
         }
 
-        private void Update()
+        private void UpdateDisplay(RectInt rect)
         {
             lock (bufferLock)
             {
                 if (bufferHolder != null && bufferHolder.Buffer != null)
                 {
+                    if (bufferHolder.Buffer.Length != canvas.width * canvas.height * 4)
+                    {
+                        Debug.LogWarningFormat("buffer size does not match screen size.");
+                        return;
+                    }
+                    
                     canvas.LoadRawTextureData(bufferHolder.Buffer);
                     canvas.Apply();
                     Debug.Log("Screen updated.");
@@ -79,31 +65,33 @@ namespace VncViewerUnity
                     {
                         bufferHolder.ResizeBuffer(width, height, stride, buffer);
                     }
+
+                    if (width == 0 || height == 0)
+                    {
+                        return;
+                    }
                     
                     MainThreadDispatcher.Instance.Invoke(() =>
                     {
                         canvas.Resize(width, height);
-                        Debug.Log("CAnvas resized on main thread.");
+                        UpdateDisplay(new RectInt(0, 0, width, height));
                     });
-
-                    // And redraw
-                    //BeginInvoke(new Action(() => { Invalidate(); }));
                 }
             }
         }
 
         public void OnFrameBufferUpdated(Rect rc)
         {
-            Debug.Log("Frame buffer updated.");
-
-            /*
-            // Invalidate on the GUI thread
-            BeginInvoke(new Action(() =>
+            if (rc.width == 0 || rc.height == 0)
             {
-                Invalidate(new Rectangle((int)rc.Left, (int)rc.Top, (int)rc.Width, (int)rc.Height));
-                Update();
-            }));
-            */
+                return;
+            }
+            
+            Debug.LogFormat("Updating display at {0}", rc);
+            MainThreadDispatcher.Instance.Invoke(() =>
+            {
+                UpdateDisplay(new RectInt((int)rc.xMin, (int)rc.yMin, (int)rc.width, (int)rc.height));
+            });
         }
     }
 
@@ -114,11 +102,10 @@ namespace VncViewerUnity
     {
         public byte[] Buffer { get; private set; }
         private GCHandle PinnedBuffer;
-        private Texture2D Canvas;
-
+        public IntPtr BufferPointer { get; private set; }
+        
         public void ResizeBuffer(int width, int height, int stride, byte[] buffer)
         {
-            Debug.Log("Resizing buffer");
             Buffer = buffer;
             if (PinnedBuffer.IsAllocated)
             {
@@ -126,7 +113,7 @@ namespace VncViewerUnity
             }
 
             PinnedBuffer = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            IntPtr pointer = PinnedBuffer.AddrOfPinnedObject();
+            BufferPointer = PinnedBuffer.AddrOfPinnedObject();
             
 
             //var pixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppRgb;
@@ -139,7 +126,7 @@ namespace VncViewerUnity
             // set data to canvas
         }
 
-        public bool IsValid => Canvas != null;
+        public bool IsValid => PinnedBuffer.IsAllocated;
 
         public void Dispose()
         {
@@ -150,11 +137,6 @@ namespace VncViewerUnity
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing) return;
-            
-            if (Canvas != null)
-            {
-                Canvas = null;
-            }
 
             if (PinnedBuffer.IsAllocated)
             {

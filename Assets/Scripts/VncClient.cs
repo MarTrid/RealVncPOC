@@ -95,9 +95,6 @@ namespace VncViewerUnity
                 // Now start the connection
                 viewerSession = new VncViewerSession
                 {
-                    //LocalCloudAddress = ConnectSettings.LocalCloudAddress,
-                    //LocalCloudPassword = ConnectSettings.LocalCloudPassword,
-                    //PeerCloudAddress = ConnectSettings.PeerCloudAddress,
                     TcpAddress = "localhost",
                     TcpPort = 5900,
                     UsingCloud = false,

@@ -12,7 +12,6 @@ namespace VncViewerUnity
         private Task<VncLibraryThread> vncLibraryThreadTask;
         private VncLibraryThread vncLibraryThread { get { return vncLibraryThreadTask.Result; } }
 
-
         private void Start()
         {
             vncLibraryThreadTask = VncLibraryThread.Start();
@@ -97,7 +96,7 @@ namespace VncViewerUnity
                 // Now start the connection
                 viewerSession = new VncViewerSession
                 {
-                    TcpAddress = "localhost",
+                    TcpAddress = "192.168.2.133",
                     TcpPort = 5900,
                     
                     FrameBufferHandler = GetComponent<FrameBufferHandler>(),
